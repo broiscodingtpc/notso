@@ -34,50 +34,60 @@ const swiper = new Swiper('.mySwiper', {
     resistanceRatio: 0.85
 });
 
-// Create floating chickens and eggs with mobile optimization
-function createFloatingElement(type) {
+// Create floating chickens and eggs with improved distribution
+function createFloatingElement(type, container) {
     const element = document.createElement('div');
     element.className = `floating-${type}`;
     element.textContent = type === 'chicken' ? '🐔' : '🥚';
     
-    // Random position within viewport
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const randomX = Math.random() * viewportWidth;
-    const randomY = Math.random() * viewportHeight;
+    // Random position within container
+    const containerRect = container.getBoundingClientRect();
+    const randomX = Math.random() * containerRect.width;
+    const randomY = Math.random() * containerRect.height;
     
     element.style.left = `${randomX}px`;
     element.style.top = `${randomY}px`;
     
-    // Adjust animation duration based on screen size
+    // Shorter animation duration for more dynamic movement
     const isMobile = window.innerWidth <= 768;
-    const baseDuration = isMobile ? 6 : 8;
-    element.style.animationDuration = `${baseDuration + Math.random() * 4}s`;
-    element.style.animationDelay = `${Math.random() * 5}s`;
+    const baseDuration = isMobile ? 3 : 4;
+    element.style.animationDuration = `${baseDuration + Math.random() * 2}s`;
+    element.style.animationDelay = `${Math.random() * 2}s`;
     
-    document.querySelector('.floating-chickens').appendChild(element);
+    container.appendChild(element);
     
-    // Remove element after animation completes
+    // Remove element after animation completes and create new one
     element.addEventListener('animationend', () => {
         element.remove();
-        // Create new element to maintain constant number
-        createFloatingElement(type);
+        setTimeout(() => {
+            createFloatingElement(type, container);
+        }, Math.random() * 1000); // Random delay before creating new element
     });
 }
 
-// Create initial floating elements with mobile optimization
+// Create initial floating elements with improved distribution
 function initializeFloatingElements() {
-    const container = document.querySelector('.floating-chickens');
-    container.innerHTML = ''; // Clear existing elements
+    // Get all sections that should have floating elements
+    const sections = document.querySelectorAll('.hero, .about-section, .gallery-section, .short-info-section, .community-section');
     
-    // Adjust number of elements based on screen size
-    const isMobile = window.innerWidth <= 768;
-    const elementCount = isMobile ? 3 : 5;
-    
-    for (let i = 0; i < elementCount; i++) {
-        createFloatingElement('chicken');
-        createFloatingElement('egg');
-    }
+    sections.forEach(section => {
+        // Create floating chickens container for each section
+        const container = document.createElement('div');
+        container.className = 'floating-chickens';
+        section.appendChild(container);
+        
+        // Adjust number of elements based on screen size
+        const isMobile = window.innerWidth <= 768;
+        const elementCount = isMobile ? 2 : 3;
+        
+        // Create elements with staggered delays
+        for (let i = 0; i < elementCount; i++) {
+            setTimeout(() => {
+                createFloatingElement('chicken', container);
+                createFloatingElement('egg', container);
+            }, i * 500); // Stagger creation by 500ms
+        }
+    });
 }
 
 // Initialize floating elements
@@ -98,6 +108,9 @@ function debounce(func, wait) {
 
 // Reinitialize on window resize with debounce
 window.addEventListener('resize', debounce(() => {
+    // Remove all existing floating chickens containers
+    document.querySelectorAll('.floating-chickens').forEach(container => container.remove());
+    // Reinitialize
     initializeFloatingElements();
 }, 250));
 
